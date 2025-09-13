@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**/*", "!**/node_modules", "!**/dist"]
+    "includes": ["**/src/**/*", "*.json", "*.md"]
   },
   "formatter": {
     "enabled": true,
@@ -15,7 +15,7 @@
     "indentStyle": "space",
     "indentWidth": 2,
     "lineEnding": "lf",
-    "lineWidth": 100,
+    "lineWidth": 120,
     "attributePosition": "auto",
     "bracketSameLine": false,
     "bracketSpacing": true,
@@ -37,7 +37,7 @@
       "jsxQuoteStyle": "double",
       "quoteProperties": "asNeeded",
       "trailingCommas": "all",
-      "semicolons": "asNeeded",
+      "semicolons": "always",
       "arrowParentheses": "always",
       "bracketSameLine": false,
       "quoteStyle": "single",
