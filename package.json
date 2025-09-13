@@ -1,8 +1,8 @@
 {
-  "name": "@hsborges/ts-template",
-  "version": "1.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "name": "@hsborges/ghsa-msr-2025",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "type": "module",
   "license": "MIT",
   "engines": {
@@ -12,19 +12,19 @@
     "check": "biome check",
     "check:fix": "biome check --fix",
     "prepare": "husky || true",
-    "build": "tsc && tsc-alias",
-    "dev": "tsx  -r \"dotenv-flow/config\" src/index.ts",
-    "start": "node -r \"dotenv-flow/config\" dist/index.js",
+    "start": "tsx  -r \"dotenv-flow/config\" src/index.ts",
     "test": "vitest run ./src",
     "test:coverage": "vitest run ./src --coverage",
-    "verify": "run-s check test build",
+    "verify": "run-s check test",
     "release": "release-it"
   },
   "dependencies": {
     "@octokit/plugin-retry": "^8.0.1",
     "@octokit/rest": "^22.0.0",
+    "consola": "^3.4.2",
     "lodash": "^4.17.21",
-    "make-fetch-happen": "^15.0.1"
+    "make-fetch-happen": "^15.0.1",
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.4",

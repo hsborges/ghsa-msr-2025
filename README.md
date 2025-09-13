@@ -1,96 +1,63 @@
-# ts-template
 
-Template mínimo em TypeScript para projetos Node.js (ESM) focado em produtividade e convenções modernas.
+# Coletor de Advisories e Dados do GitHub
 
-Este repositório fornece uma base simples com configuração pronta para desenvolvimento, build e testes:
+Este projeto automatiza a coleta de dados públicos do GitHub relacionados a advisories de segurança, repositórios e usuários envolvidos.
 
-- TypeScript com `tsc` (target Node 22+)
-- Execução rápida em desenvolvimento com `tsx`
-- Alias de compilação com `tsc-alias`
-- Testes com `vitest`
-- Linter/format via `biome` (configurada nos scripts)
-- Suporte a variáveis de ambiente via `dotenv-flow`
-- Fluxo de releases com `release-it` e convenção de commits (Commitizen + commitlint)
+## Funcionalidades
+
+- Busca advisories globais de segurança usando a API do GitHub
+- Coleta informações dos repositórios afetados
+- Coleta dados dos usuários e organizações relacionados
+- Salva os resultados em arquivos JSON na pasta `data/`
+
+## Estrutura dos principais arquivos
+
+- `src/advisories.ts`: coleta advisories de segurança
+- `src/repos.ts`: coleta dados de repositórios
+- `src/users.ts`: coleta dados de usuários
+- `src/utils/`: utilitários para escrita de arquivos e manipulação de iteradores
+
+## Como funciona
+
+O script principal (`src/index.ts`) executa a sequência:
+
+1. Busca advisories
+2. Extrai e busca repositórios relacionados
+3. Extrai e busca usuários e organizações
+4. Salva tudo em arquivos JSON
 
 ## Requisitos
 
 - Node.js >= 22
-- npm / yarn / pnpm (qualquer gerenciador de pacotes que preferir)
+- Token de acesso à API do GitHub (opcional, mas recomendado para evitar limites de rate limit)
 
-## Instalação
+## Variáveis de Ambiente
 
-Instale dependências:
+O projeto utiliza variáveis de ambiente para configuração. Você pode criar um arquivo `.env` na raiz do projeto ou usar o `.env.example` como base:
 
-```bash
+```env
+NODE_ENV=development            # Ambiente de execução: development, production ou test
+LOG_LEVEL=info                  # Nível de log: debug, info, warn, error
+GITHUB_API_URL=https://api.github.com  # URL da API do GitHub
+GITHUB_TOKEN=                   # Token de acesso à API do GitHub (opcional)
+CACHE_PATH=./.cache             # Caminho para cache local
+CACHE_STRATEGY=force-cache      # Estratégia de cache: default ou force-cache
+```
+
+Exemplo:
+
+```sh
+cp .env.example .env
+# Edite o arquivo .env conforme necessário
+```
+
+## Uso
+
+Instale as dependências e execute:
+
+```sh
 npm install
+npm start
 ```
 
-## Estrutura do projeto
-
-Principais arquivos e pastas:
-
-- `package.json` — scripts e dependências
-- `tsconfig.json` — configuração do compilador TypeScript
-- `src/` — código fonte (ex.: `src/index.ts`)
-- `dist/` — saída de build (gerada)
-
-## Scripts úteis
-
-Os scripts definidos em `package.json`:
-
-- `npm run dev` — executa `src/index.ts` em modo desenvolvimento com `tsx` e `dotenv-flow`.
-- `npm run build` — compila TypeScript (`tsc`) e aplica `tsc-alias` para resolver paths.
-- `npm run start` — executa a build (`dist/index.js`) com suporte a `dotenv-flow`.
-- `npm run check` — executa `biome check` (lint/static analysis).
-- `npm run check:fix` — tenta corrigir problemas automaticamente (`biome check --fix`).
-- `npm run test` — roda testes com `vitest` (pasta `src`).
-- `npm run test:coverage` — roda testes com cobertura.
-- `npm run verify` — roda `check`, `test` e `build` (fluxo de verificação).
-- `npm run release` — inicia fluxo de release via `release-it` (configurar antes de usar).
-
-Exemplo rápido (desenvolvimento):
-
-```bash
-npm run dev
-```
-
-Build e execução em produção local:
-
-```bash
-npm run build
-npm run start
-```
-
-## Variáveis de ambiente
-
-Este template inclui `dotenv-flow` para carregar variáveis de ambiente em `dev` e `start`. Crie arquivos `.env`, `.env.development`, `.env.test` conforme necessário.
-
-## Convenções e contribuições
-
-- Commits: a base já traz `commitizen` e `cz-conventional-changelog` para gerar mensagens de commit no formato Conventional Commits.
-- `commitlint` e `husky` são usados para reforçar políticas de commit (hooks) — é recomendável ativar `husky` localmente (`npm run prepare` já está presente no `package.json`).
-
-Se quiser contribuir:
-
-1. Fork e branch feature/bugfix.
-2. Siga o padrão de commits convencionais (p.ex. `git cz` para criar commits).
-3. Rode `npm run check` e `npm run test` antes de abrir PR.
-
-## Publicação / Releases
-
-O projeto inclui `release-it` para automatizar releases. Configure `release-it` (token de publicação e parâmetros) antes de usar `npm run release`.
-
-## Exemplos e ponto de partida
-
-O arquivo `src/index.ts` contém um exemplo mínimo:
-
-```ts
-// exemplo rápido
-console.log('Hello, world!')
-```
-
-Use este repositório como ponto de partida para bibliotecas ou microserviços pequenos. Para projetos maiores, adicione ferramentas de CI, linters/formatters mais estritos, e uma suíte de testes mais completa.
-
-## Licença
-
-MIT — consulte `package.json`.
+Os dados serão salvos na pasta `data/`.
