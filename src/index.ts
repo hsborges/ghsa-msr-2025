@@ -6,14 +6,14 @@ import octokit from './client.js';
 import getFollowers from './followers.js';
 import getRepositories from './repos.js';
 import getUsers from './users.js';
-import { writeToFile } from './utils/files.js';
+import { writeToNdjsonFile } from './utils/files.js';
 
 (async () => {
   consola.start('Iniciando coleta de advisories de segurança do GitHub...');
   const advisories = await getAdvisores(octokit);
   consola.success(`Coletados ${advisories.length} advisories.`);
-  await writeToFile('./data/advisories.json', advisories);
-  consola.info('Advisories salvos em data/advisories.json');
+  await writeToNdjsonFile('./data/advisories.ndjson', advisories);
+  consola.info('Advisories salvos em data/advisories.ndjson');
 
   consola.start('Extraindo e coletando repositórios relacionados...');
   const reposToGet = advisories
@@ -22,8 +22,8 @@ import { writeToFile } from './utils/files.js';
 
   const repositories = await getRepositories(uniq(reposToGet), octokit);
   consola.success(`Coletados ${repositories.filter(Boolean).length} repositórios.`);
-  await writeToFile('./data/repositories.json', repositories.filter(Boolean));
-  consola.info('Repositórios salvos em data/repositories.json');
+  await writeToNdjsonFile('./data/repositories.ndjson', repositories.filter(Boolean));
+  consola.info('Repositórios salvos em data/repositories.ndjson');
 
   consola.start('Extraindo e coletando usuários e organizações...');
   const usersToGet = advisories
@@ -38,14 +38,17 @@ import { writeToFile } from './utils/files.js';
   consola.start('Extraindo e coletando seguidores...');
   const followers = await getFollowers(uniq(usersToGet), octokit);
   consola.success(`Coletados ${Object.values(followers).flat().length} seguidores.`);
-  await writeToFile(
-    './data/followers.json',
-    mapValues(followers, (v) => v.map((u) => u.login)),
+  await writeToNdjsonFile(
+    './data/followers.ndjson',
+    Object.entries(mapValues(followers, (v) => v.map((u) => u.login))).map(([user, followers]) => ({
+      user,
+      followers,
+    })),
   );
-  consola.info('Seguidores salvos em data/followers.json');
+  consola.info('Seguidores salvos em data/followers.ndjson');
 
-  await writeToFile('./data/users.json', [...users, ...Object.values(followers).flat()].filter(Boolean));
-  consola.info('Usuários salvos em data/users.json');
+  await writeToNdjsonFile('./data/users.ndjson', [...users, ...Object.values(followers).flat()].filter(Boolean));
+  consola.info('Usuários salvos em data/users.ndjson');
 
   consola.box('Coleta finalizada com sucesso!');
 })();
