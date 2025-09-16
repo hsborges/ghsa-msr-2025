@@ -1,7 +1,9 @@
 import consola from 'consola';
+import mapValues from 'lodash/mapValues.js';
 import uniq from 'lodash/uniq.js';
 import getAdvisores from './advisories.js';
 import octokit from './client.js';
+import getFollowers from './followers.js';
 import getRepositories from './repos.js';
 import getUsers from './users.js';
 import { writeToFile } from './utils/files.js';
@@ -32,7 +34,17 @@ import { writeToFile } from './utils/files.js';
 
   const users = await getUsers(uniq(usersToGet), octokit);
   consola.success(`Coletados ${users.filter(Boolean).length} usuários/organizações.`);
-  await writeToFile('./data/users.json', users.filter(Boolean));
+
+  consola.start('Extraindo e coletando seguidores...');
+  const followers = await getFollowers(uniq(usersToGet), octokit);
+  consola.success(`Coletados ${Object.values(followers).flat().length} seguidores.`);
+  await writeToFile(
+    './data/followers.json',
+    mapValues(followers, (v) => v.map((u) => u.login)),
+  );
+  consola.info('Seguidores salvos em data/followers.json');
+
+  await writeToFile('./data/users.json', [...users, ...Object.values(followers).flat()].filter(Boolean));
   consola.info('Usuários salvos em data/users.json');
 
   consola.box('Coleta finalizada com sucesso!');
