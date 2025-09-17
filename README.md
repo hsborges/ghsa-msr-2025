@@ -1,4 +1,3 @@
-
 # Coletor de Advisories e Dados do GitHub
 
 Este projeto automatiza a coleta de dados públicos do GitHub relacionados a advisories de segurança, repositórios e usuários envolvidos.
@@ -8,14 +7,7 @@ Este projeto automatiza a coleta de dados públicos do GitHub relacionados a adv
 - Busca advisories globais de segurança usando a API do GitHub
 - Coleta informações dos repositórios afetados
 - Coleta dados dos usuários e organizações relacionados
-- Salva os resultados em arquivos JSON na pasta `data/`
-
-## Estrutura dos principais arquivos
-
-- `src/advisories.ts`: coleta advisories de segurança
-- `src/repos.ts`: coleta dados de repositórios
-- `src/users.ts`: coleta dados de usuários
-- `src/utils/`: utilitários para escrita de arquivos e manipulação de iteradores
+- Salva os resultados em arquivos [NDJSON](https://en.wikipedia.org/wiki/JSON_streaming) na pasta `data`
 
 ## Como funciona
 
@@ -24,7 +16,8 @@ O script principal (`src/index.ts`) executa a sequência:
 1. Busca advisories
 2. Extrai e busca repositórios relacionados
 3. Extrai e busca usuários e organizações
-4. Salva tudo em arquivos JSON
+4. Extrai e busca seguidores dos usuários identificados
+5. Salva tudo em arquivos NDJSON
 
 ## Requisitos
 
@@ -56,8 +49,8 @@ cp .env.example .env
 Instale as dependências e execute:
 
 ```sh
-npm install
-npm start
+yarn install
+yarn start
 ```
 
-Os dados serão salvos na pasta `data/`.
+Os dados serão salvos na pasta `data`.
