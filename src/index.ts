@@ -1,6 +1,7 @@
 import consola from 'consola';
 import mapValues from 'lodash/mapValues.js';
 import uniq from 'lodash/uniq.js';
+import uniqBy from 'lodash/uniqBy.js';
 import getAdvisores from './advisories.js';
 import octokit from './client.js';
 import getFollowers from './followers.js';
@@ -37,7 +38,6 @@ import { writeToNdjsonFile } from './utils/files.js';
 
   consola.start('Extraindo e coletando seguidores...');
   const followers = await getFollowers(uniq(usersToGet), octokit);
-  consola.success(`Coletados ${Object.values(followers).flat().length} seguidores.`);
   await writeToNdjsonFile(
     './data/followers.ndjson',
     Object.entries(mapValues(followers, (v) => v.map((u) => u.login))).map(([user, followers]) => ({
@@ -47,7 +47,10 @@ import { writeToNdjsonFile } from './utils/files.js';
   );
   consola.info('Seguidores salvos em data/followers.ndjson');
 
-  await writeToNdjsonFile('./data/users.ndjson', [...users, ...Object.values(followers).flat()].filter(Boolean));
+  await writeToNdjsonFile(
+    './data/users.ndjson',
+    uniqBy([...users, ...Object.values(followers).flat()].filter(Boolean), 'login'),
+  );
   consola.info('Usuários salvos em data/users.ndjson');
 
   consola.box('Coleta finalizada com sucesso!');

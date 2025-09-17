@@ -1,4 +1,5 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
+import omitBy from 'lodash/omitBy.js';
 
 export type User = RestEndpointMethodTypes['users']['getByUsername']['response']['data'];
 
@@ -16,7 +17,13 @@ export default async function getUsers(users: Array<string>, client: Octokit): P
         if (error.status === 404) return { data: null };
         throw error;
       });
-      return data;
+      return (
+        data &&
+        (omitBy(
+          data,
+          (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
+        ) as User | null)
+      );
     }),
   );
 }
