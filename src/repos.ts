@@ -33,22 +33,27 @@ export default async function getRepositories(
   );
 }
 
-export async function getOwnedRepositories(username: string, client: Octokit): Promise<Array<Repository>> {
-  const repos: Array<Repository> = [];
-  for await (const response of client.paginate.iterator(client.rest.repos.listForUser, {
-    username,
-    per_page: 100,
-    type: 'all',
-  })) {
-    repos.push(
-      ...response.data.map(
-        (data) =>
-          omitBy(
-            data,
-            (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
-          ) as Repository,
-      ),
-    );
+export async function getOwnedRepositories(username: string, client: Octokit): Promise<Array<Repository> | null> {
+  try {
+    const repos: Array<Repository> = [];
+    for await (const response of client.paginate.iterator(client.rest.repos.listForUser, {
+      username,
+      per_page: 100,
+      type: 'all',
+    })) {
+      repos.push(
+        ...response.data.map(
+          (data) =>
+            omitBy(
+              data,
+              (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
+            ) as Repository,
+        ),
+      );
+    }
+    return repos;
+  } catch (error) {
+    if (typeof error === 'object' && (error as { status?: number }).status !== 404) throw error;
+    return null;
   }
-  return repos;
 }

@@ -46,7 +46,8 @@ import { writeToNdjsonFile } from './utils/files.js';
       uniq(
         Object.values(usersRepositories)
           .flat()
-          .map((r) => r.full_name),
+          .filter(Boolean)
+          .map((r) => r!.full_name),
       ),
       octokit,
     ),
@@ -55,7 +56,7 @@ import { writeToNdjsonFile } from './utils/files.js';
     './data/users_repositories_map.ndjson',
     Object.entries(usersRepositories).map(([user, repositories]) => ({
       user,
-      repositories: repositories.map((r) => r.full_name),
+      repositories: repositories && repositories.map((r) => r.full_name),
     })),
   );
   consola.info('Repositórios dos usuários/organizações salvos em data/users_repositories_map.ndjson');
