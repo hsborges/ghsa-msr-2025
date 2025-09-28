@@ -18,7 +18,7 @@ export default async function getRepositories(
     names.map(async (name) => {
       const [owner, repo] = name.split('/');
       const { data } = await client.rest.repos.get({ owner, repo }).catch((error) => {
-        if (error.status === 404) return { data: null };
+        if ([404, 451].includes(error.status)) return { data: null };
         throw error;
       });
 
@@ -31,4 +31,24 @@ export default async function getRepositories(
       );
     }),
   );
+}
+
+export async function getOwnedRepositories(username: string, client: Octokit): Promise<Array<Repository>> {
+  const repos: Array<Repository> = [];
+  for await (const response of client.paginate.iterator(client.rest.repos.listForUser, {
+    username,
+    per_page: 100,
+    type: 'all',
+  })) {
+    repos.push(
+      ...response.data.map(
+        (data) =>
+          omitBy(
+            data,
+            (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
+          ) as Repository,
+      ),
+    );
+  }
+  return repos;
 }

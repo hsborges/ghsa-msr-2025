@@ -5,7 +5,7 @@ import uniqBy from 'lodash/uniqBy.js';
 import getAdvisores from './advisories.js';
 import octokit from './client.js';
 import getFollowers from './followers.js';
-import getRepositories from './repos.js';
+import getRepositories, { getOwnedRepositories } from './repos.js';
 import getUsers from './users.js';
 import { writeToNdjsonFile } from './utils/files.js';
 
@@ -32,6 +32,33 @@ import { writeToNdjsonFile } from './utils/files.js';
     .concat(repositories.map((repo) => repo?.owner.login))
     .concat(repositories.map((repo) => repo?.organization?.login))
     .filter(Boolean) as string[];
+
+  consola.start('Extraindo e coletando repositórios dos usuários/organizações...');
+  const usersRepositories = (
+    await Promise.all(
+      uniq(usersToGet).map(async (username) => ({ [username]: await getOwnedRepositories(username, octokit) })),
+    )
+  ).reduce((acc, cur) => ({ ...acc, ...cur }), {});
+
+  await writeToNdjsonFile(
+    './data/users_repositories.ndjson',
+    await getRepositories(
+      uniq(
+        Object.values(usersRepositories)
+          .flat()
+          .map((r) => r.full_name),
+      ),
+      octokit,
+    ),
+  );
+  await writeToNdjsonFile(
+    './data/users_repositories_map.ndjson',
+    Object.entries(usersRepositories).map(([user, repositories]) => ({
+      user,
+      repositories: repositories.map((r) => r.full_name),
+    })),
+  );
+  consola.info('Repositórios dos usuários/organizações salvos em data/users_repositories_map.ndjson');
 
   const users = await getUsers(uniq(usersToGet), octokit);
   consola.success(`Coletados ${users.filter(Boolean).length} usuários/organizações.`);
