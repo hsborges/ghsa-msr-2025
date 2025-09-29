@@ -12,7 +12,7 @@
     "check": "biome check",
     "check:fix": "biome check --fix",
     "prepare": "husky || true",
-    "start": "tsx  -r \"dotenv-flow/config\" src/index.ts",
+    "start": "NODE_OPTIONS=\"--expose-gc --max-old-space-size=8192\" tsx  -r \"dotenv-flow/config\" src/index.ts",
     "test": "vitest run ./src",
     "test:coverage": "vitest run ./src --coverage",
     "verify": "run-s check test",
