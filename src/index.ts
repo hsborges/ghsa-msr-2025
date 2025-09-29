@@ -44,27 +44,27 @@ import { writeToNdjsonFile } from './utils/files.js';
   consola.start('Extraindo e coletando repositórios dos usuários/organizações...');
   let usersRepositories = (
     await Promise.all(
-      usersToGet.map(async (username) => ({ [username]: await getOwnedRepositories(username, octokit) })),
+      usersToGet.map(async (username) => {
+        const repos = await getOwnedRepositories(username, octokit);
+        return (
+          repos && {
+            [username]: repos!.filter(Boolean).map((r) => r.full_name),
+          }
+        );
+      }),
     )
-  ).reduce((acc, cur) => ({ ...acc, ...cur }), {});
+  ).reduce((acc: Record<string, string[]>, cur) => (cur ? { ...acc, ...cur } : acc), {});
 
   await writeToNdjsonFile(
     './data/users_repositories.ndjson',
-    await getRepositories(
-      uniq(
-        Object.values(usersRepositories)
-          .flat()
-          .filter(Boolean)
-          .map((r) => r!.full_name),
-      ),
-      octokit,
-    ),
+    await getRepositories(uniq(Object.values(usersRepositories).flat()), octokit),
   );
+
   await writeToNdjsonFile(
     './data/users_repositories_map.ndjson',
     Object.entries(usersRepositories).map(([user, repositories]) => ({
       user,
-      repositories: repositories && repositories.map((r) => r.full_name),
+      repositories,
     })),
   );
   consola.info('Repositórios dos usuários/organizações salvos em data/users_repositories_map.ndjson');
