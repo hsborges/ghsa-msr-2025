@@ -1,7 +1,8 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
 import { collectAsyncIterator } from './utils/iterators.js';
 
-export type Advisory = RestEndpointMethodTypes['securityAdvisories']['listGlobalAdvisories']['response']['data'][0];
+export type Advisory =
+  RestEndpointMethodTypes['securityAdvisories']['listGlobalAdvisories']['response']['data'][number];
 
 /**
  * Fetches all global GitHub security advisories using Octokit pagination.

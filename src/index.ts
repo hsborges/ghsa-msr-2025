@@ -3,10 +3,10 @@ import mapValues from 'lodash/mapValues.js';
 import uniq from 'lodash/uniq.js';
 import uniqBy from 'lodash/uniqBy.js';
 import getAdvisores from './advisories.js';
-import octokit from './client.js';
 import getFollowers from './followers.js';
 import getRepositories, { getOwnedRepositories } from './repos.js';
 import getUsers from './users.js';
+import octokit from './utils/client.js';
 import { writeToNdjsonFile } from './utils/files.js';
 
 (async () => {
@@ -73,7 +73,7 @@ import { writeToNdjsonFile } from './utils/files.js';
   if (global.gc) global.gc();
 
   const users = await getUsers(usersToGet, octokit);
-  consola.success(`Coletados ${users.filter(Boolean).length} usuários/organizações.`);
+  consola.success(`Coletados ${users.length} usuários/organizações.`);
 
   consola.start('Extraindo e coletando seguidores...');
   const followers = await getFollowers(usersToGet, octokit);
@@ -88,7 +88,7 @@ import { writeToNdjsonFile } from './utils/files.js';
 
   await writeToNdjsonFile(
     './data/users.ndjson',
-    uniqBy([...users, ...Object.values(followers).flat()].filter(Boolean), 'login'),
+    uniqBy([...users, ...Object.values(followers).flat()], 'login').filter(Boolean),
   );
   consola.info('Usuários salvos em data/users.ndjson');
 

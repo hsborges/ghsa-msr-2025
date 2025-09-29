@@ -1,7 +1,8 @@
 import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
-import omitBy from 'lodash/omitBy.js';
+import { clearObject } from './utils/cleaner.js';
 
 export type Repository = RestEndpointMethodTypes['repos']['get']['response']['data'];
+export type PartialRepository = RestEndpointMethodTypes['repos']['listForUser']['response']['data'][number];
 
 /**
  * Fetches repository details for an array of GitHub repository names using Octokit.
@@ -22,34 +23,23 @@ export default async function getRepositories(
         throw error;
       });
 
-      return (
-        data &&
-        (omitBy(
-          data,
-          (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
-        ) as Repository | null)
-      );
+      return clearObject(data);
     }),
   );
 }
 
-export async function getOwnedRepositories(username: string, client: Octokit): Promise<Array<Repository> | null> {
+export async function getOwnedRepositories(
+  username: string,
+  client: Octokit,
+): Promise<Array<PartialRepository> | null> {
   try {
-    const repos: Array<Repository> = [];
+    const repos: Array<PartialRepository> = [];
     for await (const response of client.paginate.iterator(client.rest.repos.listForUser, {
       username,
       per_page: 100,
       type: 'all',
     })) {
-      repos.push(
-        ...response.data.map(
-          (data) =>
-            omitBy(
-              data,
-              (v) => v === null || v === undefined || (typeof v === 'string' && v.startsWith('https://api.github.com')),
-            ) as Repository,
-        ),
-      );
+      repos.push(...clearObject(response.data));
     }
     return repos;
   } catch (error) {

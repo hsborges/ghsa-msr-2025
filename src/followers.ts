@@ -1,8 +1,7 @@
-import { Octokit, RestEndpointMethodTypes } from '@octokit/rest';
-import getUsers from './users.js';
+import { Octokit } from '@octokit/rest';
+import getUsers, { User } from './users.js';
 import { collectAsyncIterator } from './utils/iterators.js';
 
-export type User = RestEndpointMethodTypes['users']['getByUsername']['response']['data'];
 export type FollowersList = Record<string, Array<User>>;
 
 /**
