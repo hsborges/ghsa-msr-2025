@@ -4,7 +4,7 @@ import uniq from 'lodash/uniq.js';
 import uniqBy from 'lodash/uniqBy.js';
 import getAdvisores from './advisories.js';
 import getFollowers from './followers.js';
-import getRepositories, { getOwnedRepositories } from './repos.js';
+import getRepositories, { getOwnedRepositories, PartialRepository } from './repos.js';
 import getUsers from './users.js';
 import octokit from './utils/client.js';
 import { writeToNdjsonFile } from './utils/files.js';
@@ -22,13 +22,12 @@ import { writeToNdjsonFile } from './utils/files.js';
       .flatMap((adv) => adv.repository_advisory_url?.split('/').slice(-4).slice(0, 2).join('/'))
       .filter(Boolean) as string[],
   );
-
   let repositories = await getRepositories(reposToGet, octokit);
   consola.success(`Coletados ${repositories.filter(Boolean).length} repositórios.`);
   await writeToNdjsonFile('./data/repositories.ndjson', repositories.filter(Boolean));
   consola.info('Repositórios salvos em data/repositories.ndjson');
 
-  consola.start('Extraindo e coletando usuários e organizações...');
+  consola.start('Extraindo e coletando repositórios dos usuários/organizações...');
   const usersToGet = uniq(
     advisories
       .flatMap((adv) => adv.credits?.map((credit) => credit.user.login))
@@ -41,37 +40,35 @@ import { writeToNdjsonFile } from './utils/files.js';
   repositories = [];
   if (global.gc) global.gc();
 
-  consola.start('Extraindo e coletando repositórios dos usuários/organizações...');
   let usersRepositories = (
     await Promise.all(
       usersToGet.map(async (username) => {
         const repos = await getOwnedRepositories(username, octokit);
         return (
           repos && {
-            [username]: repos!.filter(Boolean).map((r) => r.full_name),
+            [username]: repos!.filter(Boolean),
           }
         );
       }),
     )
-  ).reduce((acc: Record<string, string[]>, cur) => (cur ? { ...acc, ...cur } : acc), {});
+  ).reduce((acc: Record<string, PartialRepository[]>, cur) => (cur ? { ...acc, ...cur } : acc), {});
 
-  await writeToNdjsonFile(
-    './data/users_repositories.ndjson',
-    await getRepositories(uniq(Object.values(usersRepositories).flat()), octokit),
-  );
-
-  await writeToNdjsonFile(
-    './data/users_repositories_map.ndjson',
-    Object.entries(usersRepositories).map(([user, repositories]) => ({
-      user,
-      repositories,
-    })),
-  );
+  await Promise.all([
+    writeToNdjsonFile('./data/users_repositories.ndjson', uniqBy(Object.values(usersRepositories).flat(), 'id')),
+    writeToNdjsonFile(
+      './data/users_repositories_map.ndjson',
+      Object.entries(usersRepositories).map(([user, repositories]) => ({
+        user,
+        repositories: repositories.map((r) => r.full_name),
+      })),
+    ),
+  ]);
   consola.info('Repositórios dos usuários/organizações salvos em data/users_repositories_map.ndjson');
 
   usersRepositories = {};
   if (global.gc) global.gc();
 
+  consola.start('Extraindo e coletando usuários e organizações...');
   const users = await getUsers(usersToGet, octokit);
   consola.success(`Coletados ${users.length} usuários/organizações.`);
 
@@ -86,6 +83,7 @@ import { writeToNdjsonFile } from './utils/files.js';
   );
   consola.info('Seguidores salvos em data/followers.ndjson');
 
+  consola.start('Salvando usuários e organizações...');
   await writeToNdjsonFile(
     './data/users.ndjson',
     uniqBy([...users, ...Object.values(followers).flat()], 'login').filter(Boolean),
